@@ -226,9 +226,9 @@ function runT05(array $args): int
     $root = dirname(__DIR__);
     $override = null;
     for ($i = 0; $i < count($args); $i++) {
-        if ($args[$i] === '--help') { echo "Uso: php lab2/scripts/verify-t05.php [--sources DIRECTORIO_ORIGINAL]\n"; return 0; }
+        if ($args[$i] === '--help') { echo "Uso: php scripts/verify-t05.php [--sources DIRECTORIO_ORIGINAL]\n"; return 0; }
         if ($args[$i] !== '--sources' || !isset($args[$i + 1]) || $override !== null) {
-            fwrite(STDERR, "Uso: php lab2/scripts/verify-t05.php [--sources DIRECTORIO_ORIGINAL]\n"); return 1;
+            fwrite(STDERR, "Uso: php scripts/verify-t05.php [--sources DIRECTORIO_ORIGINAL]\n"); return 1;
         }
         $override = $args[++$i];
     }

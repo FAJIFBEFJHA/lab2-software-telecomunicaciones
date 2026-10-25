@@ -1,7 +1,8 @@
-# Laboratorio 2 — Preparación del entorno
+# Laboratorio 2 — Software de Telecomunicaciones
 
-Estado: C1/C2 implementadas y D1 MQTT incorporada mediante subscriber PHP CLI y herramientas Mosquitto instaladas. Primera unidad de firmware E1 para `esp32-02` implementada; falta validación física y despliegue TLS por LAN.
-El Laboratorio 1 permanece en sus directorios originales.
+Este repositorio independiente contiene en su raíz el antiguo directorio `lab2/` de `lab1-iot-node`, extraído con `git subtree split`. Los comandos siguientes se ejecutan desde esta raíz. El repositorio de Laboratorio 1 es independiente.
+
+Estado documentado al 24 de octubre de 2026: C1/C2 y D1 están implementados; D2 MQTT/TLS por LAN está integrado con `esp32-03`; los tres ESP32 transmitieron simultáneamente en la campaña P15. [P15_RESULTADOS.md](docs/P15_RESULTADOS.md) registra 336 filas y dos campañas de duración interna de PHP. P14 se ejecutó y observó, con los límites de evidencia indicados en [P14_RESULTADOS.md](docs/P14_RESULTADOS.md). La verificación T05–T08 y una prueba de carga controlada siguen pendientes. Esta migración solo se comprobó de forma estática; no se repitieron ensayos ni se verificó el estado de los servicios.
 
 ## E1: ESP32 #2 por HTTPS
 
@@ -9,54 +10,49 @@ Firmware separado con PIR explícitamente simulado, RSSI Wi-Fi real, secuencia y
 mensaje pendiente en NVS, y reintentos idempotentes. Conserva el contrato HTTP.
 Consulte [FIRMWARE_E1_HTTP.md](docs/FIRMWARE_E1_HTTP.md) para certificados,
 proxy TLS Apache hacia PHP de loopback, configuración privada, compilación y
-pruebas. No enviar tokens por HTTP en LAN ni desactivar validación TLS.
+pruebas. El firmware E1 se integró por HTTPS en la red de demostración; la incidencia previa con la red Claro no quedó resuelta. No enviar tokens por HTTP en LAN ni desactivar validación TLS.
 
-## Entorno comprobado (15 de octubre de 2026)
+## Entorno documentado
 
-- Windows con XAMPP instalado en `C:\xampp`.
-- PHP CLI 8.2.12; extensiones `PDO` y `pdo_mysql` habilitadas.
-- Apache 2.4.58 en ejecución; puertos 80 y 443 en escucha.
-- MariaDB 10.4.32 en ejecución; puerto 3306 en escucha. No se probó autenticación ni acceso a una base de datos.
-- Mosquitto no detectado en PATH ni en las ubicaciones habituales; sin proceso activo ni escucha en 1883/8883. Su disponibilidad queda pendiente para MQTT.
-
-No se instalaron componentes ni se iniciaron o modificaron servicios o configuraciones.
+El entorno Windows utiliza XAMPP en `C:\xampp`, PHP CLI, MariaDB y Mosquitto. El estado de Apache, MariaDB y los brokers depende de cada sesión; esta migración no inició servicios ni consultó la base de datos. D1 usa una instancia aislada en loopback, puerto 1884; D2 usa MQTT/TLS por LAN, puerto 8883.
 
 ## Estructura
 
 ```text
-lab2/
-  public/     Entrada web futura
-  src/        Lógica PHP futura
-  config/     Configuración local privada
-  sql/        Esquema y scripts futuros
-  firmware/   Firmware E1 y pruebas físicas aisladas
-  docs/       Documentación del laboratorio
-  README.md
-  .gitignore
+public/     Entrada HTTP
+src/        Backend PHP
+config/     Ejemplos y configuración local privada
+sql/        Esquema y comprobación PDO
+scripts/    Operación, provisión y herramientas de evidencia
+tests/      Pruebas del backend y herramientas
+firmware/   Firmware de los ESP32
+docs/       Documentación y resultados
+README.md
+.gitignore
 ```
 
-Estructura provisional: el acuerdo de la auditoría anterior no está disponible en el repositorio. Los directorios vacíos existen localmente; Git no los conserva. Se omiten archivos de relleno en esta etapa.
+La aplicación y las pruebas resuelven sus archivos desde esta estructura; los tópicos MQTT y la base de datos conservan el nombre `lab2`.
 
 ## Inicio básico
 
 1. Comprobar PHP con `C:\xampp\php\php.exe -v` y las extensiones con `C:\xampp\php\php.exe -m`.
-2. Consultar el panel `C:\xampp\xampp-control.exe`. Si Apache o MySQL (MariaDB en XAMPP) están detenidos, solicitar autorización antes de iniciarlos.
+2. Consultar el panel `C:\xampp\xampp-control.exe` y comprobar el estado de los servicios antes de operar.
 3. Para C1, utilizar el servidor y la ruta POST indicados al final de este documento. No existe una página web de inicio.
-4. Antes de implementar MQTT, confirmar la ruta o disponibilidad de Mosquitto. No instalarlo ni iniciarlo sin autorización.
+4. Para MQTT, seguir [MQTT_D1.md](docs/MQTT_D1.md) o los scripts de D2 según el transporte que se vaya a verificar.
 
 ## Configuración privada y Git
 
 Guardar la configuración real únicamente en `config/` o en archivos `.env` locales, excluidos de Git. No escribir contraseñas, tokens ni credenciales en código, SQL, firmware o documentación. La configuración local de Mosquitto también está excluida. Cualquier futuro ejemplo versionado debe contener solo marcadores ficticios y revisarse antes de añadirlo.
 
-El `.gitignore` raíz ya excluye `.env`, `.env.*`, `*.local` y `secrets.h`; `lab2/.gitignore` agrega protección local sin modificar el Laboratorio 1. No se añadieron credenciales ni se crearon commits.
+El `.gitignore` de este repositorio excluye los archivos locales y secretos del proyecto. No versionar credenciales, certificados privados ni evidencia experimental privada.
 
 ## Inicializar SQL y comprobar PDO
 
 Desde la raíz del repositorio, en **CMD**, con una cuenta autorizada para crear la base:
 
 ```bat
-C:\xampp\mysql\bin\mysql.exe --default-character-set=utf8mb4 -u USUARIO_ADMIN -p < lab2\sql\schema.sql
-C:\xampp\mysql\bin\mysql.exe --default-character-set=utf8mb4 -u USUARIO_ADMIN -p < lab2\sql\seed.sql
+C:\xampp\mysql\bin\mysql.exe --default-character-set=utf8mb4 -u USUARIO_ADMIN -p < sql\schema.sql
+C:\xampp\mysql\bin\mysql.exe --default-character-set=utf8mb4 -u USUARIO_ADMIN -p < sql\seed.sql
 ```
 
 Ejecutar el segundo comando solo si el primero termina correctamente. El esquema crea una base nueva `lab2` y falla si ya existe: no usar `--force`, borrar tablas ni repetir sobre una base existente sin revisarla. El seed inserta tres nodos sin modificar registros previos; repetirlo falla por identidad duplicada. Los tokens quedan en NULL (autenticación de los nodos deshabilitada hasta su aprovisionamiento).
@@ -66,12 +62,12 @@ Preparar una cuenta dedicada con permisos SELECT, INSERT y UPDATE sobre `lab2.*`
 Comprobar conexión, consulta preparada nativa y sesión UTC, sin escrituras:
 
 ```bat
-C:\xampp\php\php.exe lab2\sql\check-connection.php
+C:\xampp\php\php.exe sql\check-connection.php
 ```
 
 Salida correcta: `OK`; ante configuración ausente o error, devuelve código 1 sin mostrar contraseñas ni errores del controlador. No comprueba todavía el esquema ni el seed.
 
-`Database::connect()` proporciona PDO reutilizable con excepciones, UTF-8 y preparaciones nativas. `timestamp` del contrato se guarda como `telemetry.ts`: Unix UTC en segundos (0..253402300799, por el esquema) o NULL; `received_at` lo genera independientemente el servidor en UTC. La secuencia se limita al entero seguro JSON; su persistencia tras reinicios queda pendiente del firmware. TelemetryService valida `value` numérico 0/1 para PIR; no admite booleanos ni cadenas. `rssi` acepta enteros -127..0 o NULL.
+`Database::connect()` proporciona PDO reutilizable con excepciones, UTF-8 y preparaciones nativas. `timestamp` del contrato se guarda como `telemetry.ts`: Unix UTC en segundos (0..253402300799, por el esquema) o NULL; `received_at` lo genera independientemente el servidor en UTC. La secuencia se limita al entero seguro JSON; los firmwares integrados conservan secuencia y mensaje pendiente tras reinicios mediante NVS. TelemetryService valida `value` numérico 0/1 para PIR; no admite booleanos ni cadenas. `rssi` acepta enteros -127..0 o NULL.
 
 La extensión opcional documentada es `extensions`: objeto JSON de metadatos, sin cambiar identidad ni campos base; no debe contener credenciales. Se admiten claves alfanuméricas con guion/subrayado (1..64 caracteres), escalares JSON, objetos y listas anidados hasta profundidad 8, máximo 4096 bytes serializados. Sus valores no se interpretan ni ejecutan. Se rechazan campos superiores desconocidos. Omitir `extensions` equivale a `{}`; `null` y listas en su raíz son inválidos. La comparación de contenido ignora el orden de claves de objetos y conserva el orden de listas.
 
@@ -80,17 +76,17 @@ La extensión opcional documentada es `extensions`: objeto JSON de metadatos, si
 Desde la raíz del repositorio, con PDO ya configurado:
 
 ```bat
-C:\xampp\php\php.exe lab2\scripts\provision-tokens.php
-C:\xampp\php\php.exe -d display_errors=0 -S 127.0.0.1:18082 -t lab2\public lab2\public\index.php
+C:\xampp\php\php.exe scripts\provision-tokens.php
+C:\xampp\php\php.exe -d display_errors=0 -S 127.0.0.1:18082 -t public public\index.php
 ```
 
-El primer comando aprovisiona los tres nodos de prueba si no tienen token; conserva tokens existentes que coincidan con la copia local. MariaDB guarda solo `sha256:` más el hash de un token aleatorio de 256 bits. Los tokens reales se guardan únicamente en `config/test-tokens.local.json`, ignorado por Git y fuera del directorio público. El script nunca los imprime. Ejecutar un solo aprovisionamiento a la vez. Para renovar explícitamente un nodo: `C:\xampp\php\php.exe lab2\scripts\provision-tokens.php esp32-01 --rotate`. Esto invalida su token anterior; no altera telemetría. Si falta la copia privada de un token existente, renovarlo explícitamente.
+El primer comando aprovisiona los tres nodos de prueba si no tienen token; conserva tokens existentes que coincidan con la copia local. MariaDB guarda solo `sha256:` más el hash de un token aleatorio de 256 bits. Los tokens reales se guardan únicamente en `config/test-tokens.local.json`, ignorado por Git y fuera del directorio público. El script nunca los imprime. Ejecutar un solo aprovisionamiento a la vez. Para renovar explícitamente un nodo: `C:\xampp\php\php.exe scripts\provision-tokens.php esp32-01 --rotate`. Esto invalida su token anterior; no altera telemetría. Si falta la copia privada de un token existente, renovarlo explícitamente.
 
 Con el servidor activo, en otra terminal:
 
 ```bat
-C:\xampp\php\php.exe lab2\tests\c1-http.php http://127.0.0.1:18082
-C:\xampp\php\php.exe lab2\tests\c1-concurrency.php
+C:\xampp\php\php.exe tests\c1-http.php http://127.0.0.1:18082
+C:\xampp\php\php.exe tests\c1-concurrency.php
 ```
 
 El cliente de pruebas lee el token privado sin mostrarlo ni incluirlo en argumentos; envía Authorization: Bearer al endpoint local. El contrato exige `node_id`, `seq` entero 0..9007199254740991, `timestamp` (nullable), `value` y `rssi` (nullable). `node_id` debe coincidir con la identidad autenticada. Cuerpo máximo: 16384 bytes. El servidor de desarrollo solo debe escuchar en loopback; para transportar tokens por una red se requiere HTTPS.
@@ -106,7 +102,7 @@ Las pruebas T01–T04 verifican respuestas y persistencia real; también comprue
 Aprovisionar una vez el administrador independiente (desde la raíz):
 
 ```bat
-C:\xampp\php\php.exe lab2\scripts\provision-admin.php
+C:\xampp\php\php.exe scripts\provision-admin.php
 ```
 
 El token aleatorio y su hash quedan exclusivamente en `config/admin.local.json`, ignorado por Git y fuera del directorio público. No se muestran en consola. Repetir conserva el token; `--rotate` lo renueva e invalida el anterior. No usar tokens en argumentos, URLs ni logs. El administrador no se autentica como dispositivo ante POST de C1.
@@ -129,12 +125,12 @@ PUT acepta exclusivamente un objeto con `key` (1..64 caracteres alfanuméricos/g
 Para verificar, iniciar el mismo servidor local documentado en C1 y, en otra terminal:
 
 ```bat
-C:\xampp\php\php.exe lab2\tests\c2-http.php http://127.0.0.1:18082
+C:\xampp\php\php.exe tests\c2-http.php http://127.0.0.1:18082
 ```
 
 Las pruebas requieren los tokens locales de C1 y el administrador. Verifican autorización, consultas, filtros, errores, paginación y persistencia de configuración mediante PDO. Agregan dos telemetrías, tres eventos y una configuración de prueba por ejecución, con identidades nuevas; no borran datos ni sobrescriben claves previas. La única comprobación C1 es rechazar el token administrativo en POST, porque cambió el punto de entrada del enrutamiento; no se repite su suite.
 
-Detener el servidor con Ctrl+C. Las siguientes etapas requieren autorización.
+Detener el servidor con Ctrl+C al terminar.
 
 ## D1 MQTT
 
@@ -143,3 +139,5 @@ de autenticación/ACL, subscriber y pruebas reproducibles. Se utiliza una instan
 aislada en 127.0.0.1:1884; el broker existente de 1883 no se modifica ni se da por
 seguro. No se instalan dependencias. La documentación explica el límite entre
 PUBACK MQTT y confirmación de persistencia en MariaDB.
+
+Para la demostración local desde la raíz del repositorio: `powershell.exe -File .\scripts\demo.ps1`. El menú puede iniciar servicios y ejecutar pruebas que escriben en MariaDB; usarlo únicamente durante una demostración autorizada. `scripts/start-lab2.ps1` gestiona los componentes del entorno D2 por separado.

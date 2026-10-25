@@ -12,7 +12,7 @@ Herramienta: `scripts/p14-auto.py`, con control Windows aislado en
 `capture-serial.py`, las consultas PDO READ ONLY y el analizador existente.
 No automatiza A. No ejecutar dos ensayos o capturadores simultaneamente.
 
-Desde `C:\Proyecto\lab1-iot-node`, comprobar primero las etiquetas de los nodos
+Desde `C:\Proyecto\lab2-software-telecomunicaciones`, comprobar primero las etiquetas de los nodos
 y las tomas USB guardadas (`capture-serial.py --list`). `--confirm-locations`
 afirma que las placas siguen en esas tomas; no presupone numeros COM.
 Mantener encendidos los tres nodos y todos los servicios. No ejecutar LOAD/C1.
@@ -36,8 +36,8 @@ configuracion del firewall para eludir esos requisitos.
 Previsualizaciones de solo lectura (no crean evidencia fisica, no abren USB):
 
 ```powershell
-python .\lab2\scripts\p14-auto.py run B --https-clients $ip01 $ip02 --dry-run
-python .\lab2\scripts\p14-auto.py run C --dry-run
+python .\scripts\p14-auto.py run B --https-clients $ip01 $ip02 --dry-run
+python .\scripts\p14-auto.py run C --dry-run
 ```
 
 Muestran PID/creacion observados, ejecutable/configuracion D2, puertos,
@@ -47,8 +47,8 @@ real obtiene un plan nuevo; no reutiliza el identificador del dry-run.
 Ensayos fisicos: primero B; revisar su resultado y restauracion antes de C.
 
 ```powershell
-python .\lab2\scripts\p14-auto.py run B --https-clients $ip01 $ip02 --confirm-locations
-python .\lab2\scripts\p14-auto.py run C --confirm-locations
+python .\scripts\p14-auto.py run B --https-clients $ip01 $ip02 --confirm-locations
+python .\scripts\p14-auto.py run C --confirm-locations
 ```
 
 No se necesita marcar eventos manualmente. Secuencia automatica:
@@ -116,8 +116,8 @@ se termina forzosamente o se reinicia Windows, conservar el directorio que
 imprimio la herramienta y ejecutar (B requiere administrador):
 
 ```powershell
-python .\lab2\scripts\p14-auto.py recover --run 'DIRECTORIO_EXACTO_DEL_ENSAYO'
-python .\lab2\scripts\p14-evidence.py finish --run 'DIRECTORIO_EXACTO_DEL_ENSAYO' --abort
+python .\scripts\p14-auto.py recover --run 'DIRECTORIO_EXACTO_DEL_ENSAYO'
+python .\scripts\p14-evidence.py finish --run 'DIRECTORIO_EXACTO_DEL_ENSAYO' --abort
 ```
 
 Si el ensayo ya estaba cerrado, sustituir `finish --abort` por `analyze`.
@@ -129,7 +129,7 @@ por puerto, no terminar procesos por nombre y no usar `start-lab2 -Mode Stop`.
 Un bloqueo del SO impide ejecutar recover mientras el ensayo automatico sigue
 activo; se libera incluso al terminar el interprete abruptamente.
 
-Evidencias nuevas bajo `lab2/logs/evidence/P14/<UTC>-B|C-<id>/`:
+Evidencias nuevas bajo `logs/evidence/P14/<UTC>-B|C-<id>/`:
 `metadata.json`, `resources.json` (plan y estado de restauracion), `actions.json`
 (intenciones y confirmaciones reales), estados de servicios, snapshots SQL,
 logs serie originales, estado de cierre y hashes; resultados en
@@ -144,8 +144,8 @@ persistentes ni elevan privilegios.
 ### Validacion disponible y pendiente
 
 ```powershell
-python -m unittest discover -s lab2/tests -p 'test_p14*.py' -v
-powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\lab2\tests\test_p14_control.ps1
+python -m unittest discover -s tests -p 'test_p14*.py' -v
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\tests\test_p14_control.ps1
 ```
 
 Pruebas con mocks/temp: baseline incompleta, fallo de interrupcion/restauracion,
@@ -234,11 +234,11 @@ Siguiente comprobacion minima, **pasiva y sin interrumpir servicios**, cerrando
 primero otros monitores USB y confirmando las tomas guardadas:
 
 ```powershell
-python .\lab2\scripts\capture-serial.py --confirm-locations --diagnostics --duration 120 --no-console-lines
+python .\scripts\capture-serial.py --confirm-locations --diagnostics --duration 120 --no-console-lines
 ```
 
 Conservar los nuevos `*.diagnostic.log`, resumen RX y logs de esa captura en
-`lab2/logs/serial/<UTC>/`; no mezclarlos con los P14 historicos. Para esp32-02
+`logs/serial/<UTC>/`; no mezclarlos con los P14 historicos. Para esp32-02
 se necesita: bytes/LF/lineas/escrituras, invalid_utf8_lines, replacement_lines,
 first_invalid_hex, raw_line_bytes y timestamps. Esto distingue bytes invalidos
 realmente entregados por read() de U+FFFD ya codificado por la fuente; no
@@ -256,7 +256,7 @@ usar el bloqueo de red anterior. A permanece exclusivamente manual.
 
 ## Dependencias y aislamiento previo
 
-Desde `C:\Proyecto\lab1-iot-node`, usar Windows PowerShell 5.1, Python con el
+Desde `C:\Proyecto\lab2-software-telecomunicaciones`, usar Windows PowerShell 5.1, Python con el
 pyserial ya instalado y `C:\xampp\php\php.exe` con PDO MySQL. Las consultas usan
 `Lab2\Database::connect()` y una transaccion READ ONLY; no hay generacion de
 fixtures ni inicializacion de bases/colas.
@@ -268,7 +268,7 @@ fixtures ni inicializacion de bases/colas.
 2. Verificar las etiquetas fisicas y asociaciones actuales:
 
    ```powershell
-   python .\lab2\scripts\capture-serial.py --list
+   python .\scripts\capture-serial.py --list
    ```
 
    Si hay dudas, ejecutar la captura habitual con `--save`, asociar manualmente
@@ -280,8 +280,8 @@ fixtures ni inicializacion de bases/colas.
 4. Comprobar, sin abrir USB ni cambiar servicios:
 
    ```powershell
-   python .\lab2\scripts\p14-evidence.py sql-check
-   python .\lab2\scripts\p14-evidence.py inspect
+   python .\scripts\p14-evidence.py sql-check
+   python .\scripts\p14-evidence.py inspect
    ```
 
    Si CIM/sockets no se pueden consultar, usar una consola con permisos de
@@ -310,14 +310,14 @@ fixtures ni inicializacion de bases/colas.
 Primero iniciar **solo el ensayo A**:
 
 ```powershell
-python .\lab2\scripts\p14-evidence.py start A --confirm-locations
+python .\scripts\p14-evidence.py start A --confirm-locations
 ```
 
 Copiar el directorio que imprime y asignarlo literalmente a una variable de
 PowerShell; por ejemplo, sustituyendo `DIRECTORIO_MOSTRADO`:
 
 ```powershell
-$run = 'C:\Proyecto\lab1-iot-node\lab2\logs\evidence\P14\DIRECTORIO_MOSTRADO'
+$run = 'C:\Proyecto\lab2-software-telecomunicaciones\logs\evidence\P14\DIRECTORIO_MOSTRADO'
 ```
 
 La captura existente se ejecuta en segundo plano, sin competir por la entrada
@@ -330,7 +330,7 @@ privadas ni muestras hexadecimales.
    HTTP 200/201 ack=1 o PUBACK, y las correspondientes filas SQL por nodo:
 
    ```powershell
-   python .\lab2\scripts\p14-evidence.py mark --run $run --event ready
+   python .\scripts\p14-evidence.py mark --run $run --event ready
    ```
 
    Si devuelve INCOMPLETO/error, **no interrumpir nada**. Revisar
@@ -339,13 +339,13 @@ privadas ni muestras hexadecimales.
 2. **Antes de tocar el componente**, registrar intencion:
 
    ```powershell
-   python .\lab2\scripts\p14-evidence.py mark --run $run --event interrupt-intent
+   python .\scripts\p14-evidence.py mark --run $run --event interrupt-intent
    ```
 
    Realizar la accion manual indicada en la tabla inferior y, una vez terminada:
 
    ```powershell
-   python .\lab2\scripts\p14-evidence.py mark --run $run --event down --confirm-action
+   python .\scripts\p14-evidence.py mark --run $run --event down --confirm-action
    ```
 
    Si la inspeccion no confirma aislamiento/estado, restaurar manualmente y
@@ -357,13 +357,13 @@ privadas ni muestras hexadecimales.
 4. Registrar intencion de restauracion **antes** de restaurar:
 
    ```powershell
-   python .\lab2\scripts\p14-evidence.py mark --run $run --event restore-intent
+   python .\scripts\p14-evidence.py mark --run $run --event restore-intent
    ```
 
    Restaurar manualmente el mismo componente y despues:
 
    ```powershell
-   python .\lab2\scripts\p14-evidence.py mark --run $run --event restored --confirm-action
+   python .\scripts\p14-evidence.py mark --run $run --event restored --confirm-action
    ```
 
 5. Esperar **120-180 s**: el backoff existente puede alcanzar unos 61 s y puede
@@ -372,7 +372,7 @@ privadas ni muestras hexadecimales.
    nueva despues de la intencion de restaurar. Terminar:
 
    ```powershell
-   python .\lab2\scripts\p14-evidence.py finish --run $run
+   python .\scripts\p14-evidence.py finish --run $run
    $LASTEXITCODE
    ```
 
@@ -388,10 +388,10 @@ Para B y C comenzar **una carpeta nueva**, tras restaurar y estabilizar todos
 los servicios del ensayo anterior. Repetir las marcas anteriores:
 
 ```powershell
-python .\lab2\scripts\p14-evidence.py start B --confirm-locations --dedicated-apache
+python .\scripts\p14-evidence.py start B --confirm-locations --dedicated-apache
 # Asignar el NUEVO directorio a $run y seguir ready ... finish.
 
-python .\lab2\scripts\p14-evidence.py start C --confirm-locations
+python .\scripts\p14-evidence.py start C --confirm-locations
 # Asignar el NUEVO directorio a $run y seguir ready ... finish.
 ```
 
@@ -415,8 +415,8 @@ Para restaurar D2, comprobar primero con `inspect` que **1884 y 8883 estan libre
 En otra consola, validar y ejecutar manualmente la configuracion existente:
 
 ```powershell
-.\lab2\scripts\mqtt-d2.ps1 -Mode Validate
-& 'C:\Program Files\mosquitto\mosquitto.exe' -c (Resolve-Path .\lab2\config\mqtt-d2\broker.conf).Path
+.\scripts\mqtt-d2.ps1 -Mode Validate
+& 'C:\Program Files\mosquitto\mosquitto.exe' -c (Resolve-Path .\config\mqtt-d2\broker.conf).Path
 ```
 
 Mantener esa consola abierta. No usar Prepare, no ejecutar D1, no regenerar
@@ -425,7 +425,7 @@ credenciales/ACL ni borrar broker.db, spool, cursor o mensajes pendientes.
 ## Parada segura, fallos y revisiones
 
 - Para abortar: **restaurar manualmente** el componente afectado y ejecutar
-  `python .\lab2\scripts\p14-evidence.py finish --run $run --abort`.
+  `python .\scripts\p14-evidence.py finish --run $run --abort`.
 - `finish` crea un archivo de parada exclusivo de esta captura; no mata servicios.
   Si un capturador propio no responde al limite de tiempo, solo su proceso hijo
   retenido por Popen puede terminarse; se registra `forced` y no se acredita PASS.
@@ -439,7 +439,7 @@ credenciales/ACL ni borrar broker.db, spool, cursor o mensajes pendientes.
   consulta posterior sin sobrescribir el analisis previo:
 
   ```powershell
-  python .\lab2\scripts\p14-evidence.py analyze --run $run
+  python .\scripts\p14-evidence.py analyze --run $run
   ```
 
   Cada revision tiene otro directorio y otra fecha de consulta. Una fila que
@@ -484,10 +484,10 @@ no llego a reservar. Los snapshots no son instantes instrumentados de commit.
 ## Validacion de herramientas sin ejecutar ensayos fisicos
 
 ```powershell
-python -m unittest discover -s lab2/tests -p test_p14_evidence.py
-python -m unittest discover -s lab2/tests -p test_capture_serial.py
-& C:\xampp\php\php.exe -l .\lab2\scripts\p14-sql.php
-python .\lab2\scripts\p14-evidence.py sql-check
+python -m unittest discover -s tests -p test_p14_evidence.py
+python -m unittest discover -s tests -p test_capture_serial.py
+& C:\xampp\php\php.exe -l .\scripts\p14-sql.php
+python .\scripts\p14-evidence.py sql-check
 ```
 
 Los fixtures unitarios son aislados y no se guardan como evidencia fisica P14.

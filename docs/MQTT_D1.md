@@ -10,20 +10,20 @@ Solo se agregó al repositorio de dispositivos una búsqueda preparada por node_
 El broker existente de 127.0.0.1:1883 **no fue modificado ni declarado seguro**.
 Para D1 se prepara otra instancia en **127.0.0.1:1884**, sin configuración global,
 acceso anónimo ni exposición fuera de loopback. Todos sus archivos están en
-`lab2/config/mqtt-private/`, excluido de Git. No ejecutar varias instancias con
+`config/mqtt-private/`, excluido de Git. No ejecutar varias instancias con
 el mismo puerto/directorio de persistencia.
 
 Desde la raíz del repositorio, en PowerShell:
 
 ```powershell
-& C:\xampp\php\php.exe lab2/scripts/setup-mqtt.php
-& 'C:\Program Files\mosquitto\mosquitto.exe' -c "$PWD\lab2\config\mqtt-private\broker.conf"
+& C:\xampp\php\php.exe scripts/setup-mqtt.php
+& 'C:\Program Files\mosquitto\mosquitto.exe' -c "$PWD\config\mqtt-private\broker.conf"
 ```
 
 La preparación no sobrescribe una configuración existente. Genera contraseñas
 aleatorias en archivos de opciones privados, hashes con `mosquitto_passwd -U`,
 ACL y configuración de broker local. No hay secretos en argumentos ni consola.
-No compartir estos archivos; el directorio público sigue siendo `lab2/public/`.
+No compartir estos archivos; el directorio público sigue siendo `public/`.
 
 Hay un usuario por nodo (`esp32-01`, `esp32-02`, `esp32-03`), que solo puede
 publicar en `lab2/{su_node_id}/telemetry`. El usuario `lab2-subscriber` solo puede
@@ -35,8 +35,8 @@ El payload debe además coincidir con el node_id autorizado y estar registrado e
 En otra terminal:
 
 ```powershell
-& C:\xampp\php\php.exe lab2/tests/d1-security.php
-& C:\xampp\php\php.exe lab2/tests/d1-mqtt.php
+& C:\xampp\php\php.exe tests/d1-security.php
+& C:\xampp\php\php.exe tests/d1-mqtt.php
 ```
 
 La primera prueba exige un control positivo, rechazo anónimo y con contraseña
@@ -59,19 +59,19 @@ Detener un subscriber manual antes de ejecutar la prueba (bloqueo de instancia �
 ## Ejecución y trazabilidad
 
 ```powershell
-& C:\xampp\php\php.exe lab2/scripts/mqtt-subscriber.php --timeout=300
+& C:\xampp\php\php.exe scripts/mqtt-subscriber.php --timeout=300
 ```
 
 Sin timeout, funciona continuamente. Para parada ordenada, en otra terminal:
 
 ```powershell
-Set-Content lab2/config/mqtt-private/runtime/stop stop
+Set-Content config/mqtt-private/runtime/stop stop
 ```
 
 Antes de iniciar otra ejecución, retirar **solo esa señal de parada**:
 
 ```powershell
-Remove-Item -LiteralPath lab2/config/mqtt-private/runtime/stop
+Remove-Item -LiteralPath config/mqtt-private/runtime/stop
 ```
 
 El timeout devuelve 2; una parada ordenada o max-messages completado devuelve 0;
@@ -103,10 +103,10 @@ de cola/logs en D1.
 ## Si se exige usar 1883
 
 No apuntar el subscriber al broker actual sin verificar su seguridad. Dentro
-de lab2 se puede preparar una configuración equivalente con listener explícito
+de este repositorio se puede preparar una configuración equivalente con listener explícito
 127.0.0.1:1883, allow_anonymous false, password_file y acl_file privados.
 Si 1883 ya está ocupado, su responsable debe autorizar y realizar la parada o
 el cambio externo antes de iniciar esa configuración. Después ajustar también
 el puerto de los archivos de opciones y mqtt.local.php, repetir d1-security y
-d1-mqtt. No se realizó ningún cambio externo a lab2. Para acceso desde otra
+d1-mqtt. No se realizó ningún cambio externo al repositorio. Para acceso desde otra
 máquina se requeriría otro diseño de listener y TLS, fuera de D1.

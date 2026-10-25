@@ -46,7 +46,7 @@ reconexiones. Ningun callback invoca SNTP. La verificacion temporal TLS sigue ac
 
 ## Tres pruebas consecutivas desde RESET/EN
 
-1. Abrir `lab2/firmware/esp32_02_http/esp32_02_http.ino` en Arduino IDE. Conservar
+1. Abrir `firmware/esp32_02_http/esp32_02_http.ino` en Arduino IDE. Conservar
    el `secrets.h` local existente sin editar. En Boards Manager comprobar
    **esp32 by Espressif Systems 3.3.8**. Elegir **ESP32 Dev Module** y el puerto
    USB correspondiente a la placa #2.

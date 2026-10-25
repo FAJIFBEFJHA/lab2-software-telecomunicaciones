@@ -96,7 +96,7 @@ Dentro del paquete de evidencias:
 - `P15_analizar.py`: script autocontenido para recomputar los CSV desde los seis originales. Ejecutar `python P15_analizar.py` dentro de la carpeta extraída, sin dependencias externas.
 - `SHA256SUMS.txt`: huellas criptográficas para verificar integridad, especialmente de las fuentes originales.
 
-**Preservación sugerida:** conservar este archivo como `lab2/docs/P15_RESULTADOS.md` en el repositorio y el paquete ZIP en una carpeta `lab2/docs/evidencias/` (si el tamaño y la política del repositorio lo permiten). Mantener además un respaldo externo. Los resultados no dependen de las memorias de ChatGPT. Al redactar el informe, reutilizar este documento como antecedente y los archivos originales como sustento, sin sustituirlos por afirmaciones no comprobadas.
+**Preservación sugerida:** conservar este archivo como `docs/P15_RESULTADOS.md` en el repositorio y el paquete ZIP en una carpeta `docs/evidencias/` (si el tamaño y la política del repositorio lo permiten). Mantener además un respaldo externo. Los resultados no dependen de las memorias de ChatGPT. Al redactar el informe, reutilizar este documento como antecedente y los archivos originales como sustento, sin sustituirlos por afirmaciones no comprobadas.
 
 ## 9. Campañas adicionales: latencia interna de `TelemetryService::receive()`
 

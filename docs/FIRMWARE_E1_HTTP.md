@@ -1,6 +1,6 @@
 # E1. ESP32 #2: PIR simulado por HTTPS
 
-Primera unidad: `lab2/firmware/esp32_02_http/esp32_02_http.ino`, identidad fija
+Primera unidad: `firmware/esp32_02_http/esp32_02_http.ino`, identidad fija
 `esp32-02`. No modifica Lab1, backend, MQTT, SQL ni la prueba `pir_rele_10s.ino`.
 No se conecta PIR, relé ni LED a esta placa. El valor alterna 0/1 según la paridad
 de la secuencia; **solo el PIR es simulado**. El RSSI procede de `WiFi.RSSI()` al
@@ -176,7 +176,7 @@ Herramientas: Arduino IDE/CLI y core **esp32:esp32 3.3.8**, placa ESP32 Dev Modu
 HTTPClient, Preferences y cJSON vienen con el core; no hay librerías externas.
 
 ```powershell
-arduino-cli compile --fqbn esp32:esp32:esp32 --warnings all --build-path build/e1-esp32 lab2/firmware/esp32_02_http
+arduino-cli compile --fqbn esp32:esp32:esp32 --warnings all --build-path build/e1-esp32 firmware/esp32_02_http
 ```
 
 Para comprobar compilación sin secretos, copiar el sketch y el header a una
@@ -189,8 +189,8 @@ No cargar automáticamente a una placa: identificar primero puerto y placa #2.
 Prueba portable de estado con compilador C++ de escritorio (no necesita placa):
 
 ```powershell
-g++ -std=c++11 -Wall -Wextra -pedantic lab2/tests/e1-state.cpp -o build/e1-state.exe
-& ./build/e1-state.exe | & C:/xampp/php/php.exe lab2/tests/e1-contract.php
+g++ -std=c++11 -Wall -Wextra -pedantic tests/e1-state.cpp -o build/e1-state.exe
+& ./build/e1-state.exe | & C:/xampp/php/php.exe tests/e1-contract.php
 ```
 
 Comprobar el código de salida de **ambos** programas. C++ comprueba reserva,

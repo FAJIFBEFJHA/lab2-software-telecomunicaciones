@@ -373,7 +373,7 @@ function loadMain(array $args): int
 {
     $url = 'http://127.0.0.1:18082/api/v1/telemetry'; $timeout = 5000; $seconds = 60;
     for ($i = 0; $i < count($args); $i++) {
-        if ($args[$i] === '--help') { echo "Uso: php lab2/scripts/http-load.php [--url HTTP_LOOPBACK] [--timeout-ms 100..10000] [--scenario-seconds 5..120]\n401 peticiones maximas: 1 calentamiento + 100 por concurrencia 1/5/10/20. Sin reintentos.\n"; return 0; }
+        if ($args[$i] === '--help') { echo "Uso: php scripts/http-load.php [--url HTTP_LOOPBACK] [--timeout-ms 100..10000] [--scenario-seconds 5..120]\n401 peticiones maximas: 1 calentamiento + 100 por concurrencia 1/5/10/20. Sin reintentos.\n"; return 0; }
         if (!in_array($args[$i], ['--url','--timeout-ms','--scenario-seconds'], true) || !isset($args[$i + 1])) { throw new LoadFailure('Argumentos no validos; use --help.'); }
         $name = $args[$i++]; $value = $args[$i];
         if ($name === '--url') { $url = $value; }

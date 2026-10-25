@@ -1,10 +1,10 @@
 # Laboratorio 2 - Demostracion verificable (Windows PowerShell 5.1 / PowerShell 7)
-# Ejecutar desde el repositorio: .\lab2\scripts\demo.ps1
+# Ejecutar desde el repositorio: .\scripts\demo.ps1
 # Usa los scripts reales del proyecto, no contiene credenciales y no modifica PATH.
 # Las pruebas insertan registros etiquetados de prueba. No reinicializar base de datos.
 
 $ErrorActionPreference = 'Stop'
-$script:RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$script:RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $script:PhpProcess = $null
 $script:BrokerProcess = $null
 $script:HttpPort = 18082
@@ -28,12 +28,12 @@ function Find-Executable {
 $script:Php = Find-Executable -Candidates @('C:\xampp\php\php.exe') -Name 'php.exe'
 $script:Mysql = Find-Executable -Candidates @('C:\xampp\mysql\bin\mysql.exe') -Name 'mysql.exe'
 $script:Broker = Find-Executable -Candidates @('C:\Program Files\mosquitto\mosquitto.exe') -Name 'mosquitto.exe'
-$script:DbConfig = Join-Path $script:RepoRoot 'lab2\config\database.local.php'
-$script:MqttConfig = Join-Path $script:RepoRoot 'lab2\config\mqtt.local.php'
-$script:BrokerConfig = Join-Path $script:RepoRoot 'lab2\config\mqtt-private\broker.conf'
+$script:DbConfig = Join-Path $script:RepoRoot 'config\database.local.php'
+$script:MqttConfig = Join-Path $script:RepoRoot 'config\mqtt.local.php'
+$script:BrokerConfig = Join-Path $script:RepoRoot 'config\mqtt-private\broker.conf'
 
-if (-not (Test-Path -LiteralPath (Join-Path $script:RepoRoot 'lab2\public\index.php') -PathType Leaf)) {
-    throw 'El script debe estar en lab2/scripts/ de un repositorio del Laboratorio 2.'
+if (-not (Test-Path -LiteralPath (Join-Path $script:RepoRoot 'public\index.php') -PathType Leaf)) {
+    throw 'El script debe estar en scripts/ de un repositorio del Laboratorio 2.'
 }
 
 function Test-LocalPort {
@@ -120,7 +120,7 @@ function Show-Environment {
         Write-Host '[PENDIENTE] MariaDB no responde; inicie MySQL en XAMPP.' -ForegroundColor Yellow
         return
     }
-    $file = Join-Path $script:RepoRoot 'lab2\sql\check-connection.php'
+    $file = Join-Path $script:RepoRoot 'sql\check-connection.php'
     & $script:Php $file | Out-Host
     if ($LASTEXITCODE -eq 0) {
         Write-Host '[VERIFICADO] PHP conecto a MariaDB, ejecuto la consulta y comprobo UTC.' -ForegroundColor Green
@@ -137,12 +137,12 @@ function Start-DemoServices {
         throw 'MariaDB no responde en 3306. Abra XAMPP y pulse Start en MySQL; no se inicia una base nueva.'
     }
     if (-not (Test-Path -LiteralPath $script:DbConfig -PathType Leaf)) {
-        throw 'Falta lab2/config/database.local.php; no se crearan credenciales.'
+        throw 'Falta config/database.local.php; no se crearan credenciales.'
     }
     if (-not (Test-LocalPort -Port $script:HttpPort)) {
-        Write-Host 'Iniciando PHP con router lab2/public/index.php...'
+        Write-Host 'Iniciando PHP con router public/index.php...'
         $script:PhpProcess = Start-Process -FilePath $script:Php `
-            -ArgumentList '-d display_errors=0 -S 127.0.0.1:18082 -t lab2/public lab2/public/index.php' `
+            -ArgumentList '-d display_errors=0 -S 127.0.0.1:18082 -t public public/index.php' `
             -WorkingDirectory $script:RepoRoot -WindowStyle Hidden -PassThru
         if (Wait-LocalPort -Port $script:HttpPort) {
             Write-Host "[EN ESCUCHA] API HTTP en $script:HttpUrl (PID $($script:PhpProcess.Id))" -ForegroundColor Green
@@ -200,7 +200,7 @@ function Invoke-PHPTest {
 function Get-TelemetryCount {
     # Query read-only. Return $null if the environment is not ready.
     if (-not $script:Php -or -not (Test-LocalPort -Port $script:DbPort)) { return $null }
-    $file = Join-Path $script:RepoRoot 'lab2\scripts\demo-data.php'
+    $file = Join-Path $script:RepoRoot 'scripts\demo-data.php'
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { return $null }
     $value = & $script:Php $file 'count'
     if ($LASTEXITCODE -ne 0) { return $null }
@@ -232,7 +232,7 @@ function Show-Data {
         full = 'Evidencia SQL: tablas, cantidades, mediciones, eventos y configuraciones'
         audit = 'Evidencia MQTT: sucesos de la auditoria privada (campos no sensibles)'
     }
-    [void](Invoke-PHPTest -RelativePath 'lab2\scripts\demo-data.php' -Title $descriptions[$Mode] -Arguments @($Mode))
+    [void](Invoke-PHPTest -RelativePath 'scripts\demo-data.php' -Title $descriptions[$Mode] -Arguments @($Mode))
 }
 
 function Test-Rest {
@@ -244,14 +244,14 @@ function Test-Rest {
     $before = Get-TelemetryCount
     Write-Host 'A) POST /api/v1/telemetry: verifica 201 nuevo, 401 token invalido, 422 campos faltantes,'
     Write-Host '   200 reintento duplicado, 409 conflicto, 400 JSON y 403 identidad cruzada.'
-    $ok = Invoke-PHPTest -RelativePath 'lab2\tests\c1-http.php' -Title 'HTTP: recibir y validar telemetria' -Arguments @($script:HttpUrl)
+    $ok = Invoke-PHPTest -RelativePath 'tests\c1-http.php' -Title 'HTTP: recibir y validar telemetria' -Arguments @($script:HttpUrl)
     if (-not $ok) {
         Write-Host 'Se omite la segunda suite porque fallo la recepcion de telemetria.' -ForegroundColor Yellow
         return
     }
     Write-Host "`nB) GET /devices; GET /devices/{id}/telemetry; PUT /devices/{id}/config; GET /events."
     Write-Host '   Comprueba filtros, permisos de administrador y dispositivo, paginacion y errores.'
-    $ok = Invoke-PHPTest -RelativePath 'lab2\tests\c2-http.php' -Title 'HTTP: consultar dispositivos, historial, configuracion y eventos' -Arguments @($script:HttpUrl)
+    $ok = Invoke-PHPTest -RelativePath 'tests\c2-http.php' -Title 'HTTP: consultar dispositivos, historial, configuracion y eventos' -Arguments @($script:HttpUrl)
     if ($ok) {
         Show-CountChange -Before $before
         Write-Host "`nComprobacion independiente de persistencia mediante SELECT en MariaDB:"
@@ -268,13 +268,13 @@ function Test-Mqtt {
     $before = Get-TelemetryCount
     Write-Host 'A) Broker: permite al nodo publicar en su propio topico y rechaza'
     Write-Host '   anonimos, claves incorrectas, escrituras ajenas y escritura del subscriber.'
-    $ok = Invoke-PHPTest -RelativePath 'lab2\tests\d1-security.php' -Title 'MQTT: acceso autorizado y permisos por nodo'
+    $ok = Invoke-PHPTest -RelativePath 'tests\d1-security.php' -Title 'MQTT: acceso autorizado y permisos por nodo'
     if (-not $ok) {
         Write-Host 'No se ejecuta ingesta MQTT sin ACL verificadas.' -ForegroundColor Red
         return
     }
     Write-Host "`nVerificacion observable: respuestas del broker a publicaciones autorizadas y rechazadas:"
-    $ok = Invoke-PHPTest -RelativePath 'lab2\scripts\demo-acl.php' -Title 'MQTT: resultados originales del broker (PUBACK/errores)'
+    $ok = Invoke-PHPTest -RelativePath 'scripts\demo-acl.php' -Title 'MQTT: resultados originales del broker (PUBACK/errores)'
     if (-not $ok) {
         Write-Host 'No se ejecuta ingesta MQTT: los resultados del broker no coinciden con ACL esperadas.' -ForegroundColor Red
         return
@@ -282,7 +282,7 @@ function Test-Mqtt {
     Write-Host "`nB) Publicacion MQTT -> suscriptor PHP -> TelemetryService -> MariaDB."
     Write-Host '   Prueba insercion, duplicados, conflicto, identidad y reanudacion controlada.'
     Write-Host '   La prueba administra su propio suscriptor; no inicie otro simultaneamente.'
-    $ok = Invoke-PHPTest -RelativePath 'lab2\tests\d1-mqtt.php' -Title 'MQTT: persistencia de mensajes y recuperacion del suscriptor'
+    $ok = Invoke-PHPTest -RelativePath 'tests\d1-mqtt.php' -Title 'MQTT: persistencia de mensajes y recuperacion del suscriptor'
     if ($ok) {
         Show-CountChange -Before $before
         Write-Host "`nRegistros de auditoria generados por el procesamiento MQTT:"
@@ -297,7 +297,7 @@ function Test-Concurrency {
     $before = Get-TelemetryCount
     Write-Host 'Cuatro procesos intentan insertar la misma identidad y secuencia.'
     Write-Host 'Se esperan exactamente una creacion y tres duplicados, verificados en MariaDB.'
-    $ok = Invoke-PHPTest -RelativePath 'lab2\tests\c1-concurrency.php' -Title 'Prueba SQL de concurrencia e idempotencia'
+    $ok = Invoke-PHPTest -RelativePath 'tests\c1-concurrency.php' -Title 'Prueba SQL de concurrencia e idempotencia'
     if ($ok) { Show-CountChange -Before $before; Show-Data -Mode brief }
 }
 
